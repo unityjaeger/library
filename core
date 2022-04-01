@@ -6,6 +6,8 @@ function library:Import(branch)
     if library[branch] then
         return loadstring(game:HttpGet(library[branch]))()
     end
+    
+    return nil
 end
 
 return library
