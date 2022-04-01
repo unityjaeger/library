@@ -1,4 +1,4 @@
-local file
+local file = {}
 
 function file:Folder(name)
     if not isfolder(name) then
