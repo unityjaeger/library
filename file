@@ -1,0 +1,13 @@
+local file
+
+function file:Folder(name)
+    if not isfolder(name) then
+        makefolder(name)
+    end
+end
+
+function file:Data(folder, name)
+    writefile(folder.."/"..name..".txt", "")
+end
+
+return file
