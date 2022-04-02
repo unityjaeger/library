@@ -1,5 +1,6 @@
 local library = {
-    FileSaving = "https://raw.githubusercontent.com/unityjaeger/library/main/file"
+    FileSaving = "https://raw.githubusercontent.com/unityjaeger/library/main/file";
+    Client = "https://raw.githubusercontent.com/unityjaeger/library/main/client";
 }
 
 function library:Import(branch)
