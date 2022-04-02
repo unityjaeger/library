@@ -1,6 +1,8 @@
 local library = {
     FileSaving = "https://raw.githubusercontent.com/unityjaeger/library/main/file";
     Client = "https://raw.githubusercontent.com/unityjaeger/library/main/client";
+    ESP = "https://raw.githubusercontent.com/unityjaeger/library/main/esp";
+    Blocker = "https://raw.githubusercontent.com/unityjaeger/library/main/blocker";
 }
 
 function library:Import(branch)
