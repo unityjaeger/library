@@ -1,8 +1,13 @@
-## how to use very cool library
-
-### Client
+# how to use very cool library
+## Main Script
 ```lua
-client:Character()
+local ESP = library:Import("ESP")
+```
+returns the library u want to import (check core script for all libraries)
+
+## Client
+```lua
+local char = client:Character()
 ```
 returns the Player Character
 ```lua
