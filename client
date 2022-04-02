@@ -1,0 +1,115 @@
+local client = {}
+
+local Player = game.Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+function client:Character()
+    return Player.Character
+end
+
+local DefaultGravity = workspace.Gravity
+function client:Root(OnExist)
+    local Root = client:Character():FindFirstChild("HumanoidRootPart")
+    if not Root then return end
+
+    if OnExist then
+        OnExist(Root)
+    else
+        return Root
+    end
+end
+
+function client:Humanoid(OnExist, Alive)
+    local Humanoid = client:Character():FindFirstChild("Humanoid")
+    if not Humanoid or (Alive and Humanoid and Humanoid.Health <= 0) then return end
+
+    if OnExist then
+        OnExist(Humanoid)
+    else
+        return Humanoid
+    end
+end
+
+function client:Teleport(Destination)
+    if not client:Humanoid(nil, true) then return end
+    client:Root(function(root)
+        root.CFrame = Destination
+    end)
+end
+
+function client:Tween(Destination, Speed, OnArrive)
+    local CharAtStart = client:Character()
+    client:Root(function(root)
+        local Time = (root.Position - Destination.Position).magnitude / Speed
+        local Tween = TweenService:Create(root, TweenInfo.new(Time, Enum.EasingStyle.Linear), {CFrame = Destination})
+        Tween:Play()
+
+        if OnArrive then
+            Tween.Completed:Connect(function(State)
+                if not client:Humanoid(nil, true) then return end
+                if State == Enum.PlaybackState.Completed and CharAtStart == client:Character() then
+                    OnArrive()
+                end
+            end)
+        end
+    end)
+end
+
+local Connection
+function client:Noclip(Bool)
+    if Bool then
+        if not client:Humanoid(nil, true) then return end
+
+        if not Connection then
+            for _,v in pairs(getconnections(client:Character().Torso.ChildAdded)) do
+                v:Disable() 
+            end
+
+            local Limbs = {}
+            for _,v in pairs(client:Character():GetDescendants()) do
+                if v:IsA("BasePart") and v.CanCollide then
+                    table.insert(Limbs, v)
+                end
+            end
+
+            Connection = RunService.Stepped:Connect(function()
+                for _,v in pairs(Limbs) do
+                    v.CanCollide = false
+                end
+            end)
+        end
+    else
+        if Connection then
+            Connection:Disconnect()
+            Connection = nil
+        end
+    end
+end
+
+local Massless = {}
+function client:Float(Bool)
+    if Bool then
+        if not client:Humanoid(nil, true) then return end
+
+        for _,v in pairs(client:Character():GetChildren()) do
+            if v:IsA"BasePart" and v ~= client:Root() then
+                v.Massless = true
+                table.insert(Massless, v)
+            end
+        end
+
+        client:Root(function(root)
+            workspace.Gravity = 0
+            root.AssemblyLinearVelocity = Vector3.new()
+        end)
+    else
+        for i,v in ipairs(Massless) do
+            v.Massless = false
+            Massless[i] = nil
+        end
+
+        workspace.Gravity = DefaultGravity
+    end
+end
+
+return client
