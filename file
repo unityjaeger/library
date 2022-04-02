@@ -10,7 +10,6 @@ function file.Folder(name)
     end
 
     self.Folder = name
-    self.Files = {}
 
     function self:Get(name, default)
         local path = self.Folder.."/"..name..".json"
@@ -18,7 +17,6 @@ function file.Folder(name)
             writefile(path, default and HttpService:JSONEncode(default) or {})
         end
 
-        table.insert(self.Files, name..".json")
         local self2 = setmetatable({}, self)
         self2.Data = HttpService:JSONDecode(readfile(path));
         function self2:Update(new)
