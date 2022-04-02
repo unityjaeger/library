@@ -1,0 +1,107 @@
+local esp = {}
+esp.__index = esp
+
+local Camera = workspace.CurrentCamera
+local RunService = game:GetService("RunService")
+
+local function ToVector2(worldPoint)
+    local Vector, OnScreen = Camera:WorldToScreenPoint(worldPoint)
+    return OnScreen and Vector or nil
+end
+
+function esp.Base(SettingsTable)
+    local self = setmetatable({}, esp)
+    self.objs = {}
+
+    self.Color = SettingsTable["Color"]
+    self.Transparency = SettingsTable["Transparency"]
+    self.Size = SettingsTable["TextSize"]
+    self.Outline = SettingsTable["Outline"]
+    self.OutlineColor = SettingsTable["OutlineColor"]
+    self.Font = Drawing.Fonts[SettingsTable["Font"]]
+    self.Distance = SettingsTable["Distance"]
+    self.Health = SettingsTable["Health"]
+
+    function self:UpdateSettings(SettingsTable)
+        self.Color = SettingsTable["Color"]
+        self.Transparency = SettingsTable["Transparency"]
+        self.Size = SettingsTable["TextSize"]
+        self.Outline = SettingsTable["Outline"]
+        self.OutlineColor = SettingsTable["OutlineColor"]
+        self.Font = Drawing.Fonts[SettingsTable["Font"]]
+        self.Distance = SettingsTable["Distance"]
+        self.Health = SettingsTable["Health"]
+    
+        for _, Info in pairs(self.objs) do
+            local Drawing = Info[1]
+            Drawing.Color = self.Color
+            Drawing.Size = self.Size
+            Drawing.Transparency = self.Transparency
+            Drawing.Font = self.Font
+            Drawing.Outline = self.Outline
+            if self.Outline then
+                Drawing.OutlineColor = self.Outline
+            end
+        end
+    end
+
+    function self:Add(Obj, CustomName, HighestPoint)
+        local Drawing = Drawing.new("Text")
+        Drawing.Color = self.Color
+        Drawing.Size = self.Size
+        Drawing.Transparency = self.Transparency
+        Drawing.Visible = true
+        Drawing.Font = self.Font
+        Drawing.Outline = self.Outline
+        Drawing.Center = true
+        if self.Outline then
+            Drawing.OutlineColor = self.Outline
+        end
+
+        local con
+        con = Obj.AncestryChanged:Connect(function()
+            Drawing:Remove()
+            self.objs[Obj] = nil
+            con:Disconnect()
+        end)
+
+        local Point = HighestPoint or Obj:IsA"Model" and Obj.PrimaryPart or Obj.Position
+        self.objs[Obj] = {Drawing, Point, CustomName or Obj.Name}
+    end
+
+    RunService.RenderStepped:Connect(function()
+        for obj, Info in pairs(self.objs) do
+            local Drawing = Info[1]
+            local ESPPoint = Info[2].Position + Vector3.new(0, Info[2].Size.Y/2 + 1, 0)
+            local Name = Info[3]
+            Drawing.Text = Name
+            
+            local Point = obj:IsA"Model" and obj.PrimaryPart.Position or obj.Position
+            local Humanoid = obj:FindFirstChildOfClass("Humanoid", true)
+            local Root = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character.PrimaryPart or nil
+            if Root and self.Distance then
+                local mag = math.round((Root.Position - Point).magnitude)
+                Drawing.Text = Drawing.Text.."\n["..mag.."]"
+            end
+
+            if Humanoid and self.Health then
+                Drawing.Text = Drawing.Text..(Root and self.Distance and " [" or "\n[")..math.round(Humanoid.Health).."/"..Humanoid.MaxHealth.."]"
+            end
+
+            local Vector = ToVector2(ESPPoint)
+            if Vector then
+                if not Drawing.Visible then
+                    Drawing.Visible = true
+                end
+                
+                Drawing.Position = Vector2.new(Vector.X, Vector.Y)
+            else
+                Drawing.Visible = false
+            end
+        end
+    end)
+
+    return self
+end
+
+return esp
