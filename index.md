@@ -40,3 +40,20 @@ toggles Noclip
 client:Float(true)
 ```
 toggles Float (no gravity midair)
+
+##file saving
+```lua
+local folder = file.Folder(name)
+```
+creates a folder if no folden exists, else it uses existing folder
+```lua
+local default = {
+  example = true;
+}
+local data = folder:Get(default)
+print(data.Data) --> {example = true}
+default.example = false
+data:Update(default)
+print(data.Data --> {example = false}
+```
+:Get returns a file, if it doesnt exist it will create the file with the default argument, :Update sets the files data to the new table given
