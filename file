@@ -15,7 +15,7 @@ function file.Folder(name)
     function self:Get(name, default)
         local path = self.Folder.."/"..name..".json"
         if not isfile(path) then
-            writefile(path, HttpService:JSONEncode(default))
+            writefile(path, default and HttpService:JSONEncode(default) or {})
         end
 
         table.insert(self.Files, name..".json")
@@ -24,7 +24,7 @@ function file.Folder(name)
         function self2:Save(new)
             self2.Data = new
             writefile(path, HttpService:JSONEncode(new))
-        end)
+        end
 
         return self2
     end
