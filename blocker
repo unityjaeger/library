@@ -1,0 +1,56 @@
+local blocker = {}
+
+local Hooks = {}
+local Remotes = {}
+function blocker:Block(a)
+    if typeof(a) == "RBXScriptSignal" then
+        for _, con in pairs(getconnections(a)) do
+            con:Disable()
+        end
+    elseif typeof(a) == "Instance" or type(a) == "string" then
+        if not table.find(Remotes, a) then
+            table.insert(Remotes, a)
+        end
+    elseif typeof(a) == "function" then
+        local curr
+        Hooks[a] = true
+        curr = hookfunction(a, function(self, ...)
+            if Hooks[a] then
+                return
+            end
+
+            return curr(self, ...)
+        end)
+    end
+end
+
+function blocker:Unblock(a)
+    if typeof(a) == "RBXScriptSignal" then
+        for _, con in pairs(getconnections(a)) do
+            con:Enable()
+        end
+    elseif typeof(a) == "Instance" or type(a) == "string" then
+        if table.find(Remotes, a) then
+            table.remove(Remotes, table.find(Remotes, a))
+        end
+    elseif typeof(a) == "function" then
+        if Hooks[a] then
+            Hooks[a] = nil
+        end
+    end
+end
+
+local OldNameCall = nil
+OldNameCall = hookmetamethod(game, "__namecall", function(Self, ...)
+    local NamecallMethod = getnamecallmethod()
+
+    if not checkcaller() and (NamecallMethod == "FireServer" or NamecallMethod == "InvokeServer") then
+        if table.find(Remotes, Self) or table.find(Remotes, Self.Name) then
+            return
+        end
+    end
+
+    return OldNameCall(Self, ...)
+end)
+
+return blocker
