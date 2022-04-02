@@ -46,14 +46,16 @@ function esp.Base(SettingsTable)
     end
 
     function self:Purge()
-        for _, Info in pairs(self.objs) do
+        for Obj, Info in pairs(self.objs) do
             Info[1]:Remove()
+            self.objs[Obj] = nil
         end
     end
 
     function self:Remove(Obj)
         if self.objs[Obj] then
             self.objs[Obj][1]:Remove()
+            self.objs[Obj] = nil
         end
     end
 
