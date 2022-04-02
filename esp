@@ -45,6 +45,18 @@ function esp.Base(SettingsTable)
         end
     end
 
+    function self:Purge()
+        for _, Info in pairs(self.objs) do
+            Info[1]:Remove()
+        end
+    end
+
+    function self:Remove(Obj)
+        if self.objs[Obj] then
+            self.objs[Obj][1]:Remove()
+        end
+    end
+
     function self:Add(Obj, CustomName, HighestPoint)
         local Drawing = Drawing.new("Text")
         Drawing.Color = self.Color
