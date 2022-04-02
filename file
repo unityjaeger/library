@@ -21,7 +21,7 @@ function file.Folder(name)
         table.insert(self.Files, name..".json")
         local self2 = setmetatable({}, self)
         self2.Data = HttpService:JSONDecode(readfile(path));
-        function self2:Save(new)
+        function self2:Update(new)
             self2.Data = new
             writefile(path, HttpService:JSONEncode(new))
         end
