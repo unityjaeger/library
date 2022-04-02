@@ -10,13 +10,11 @@ function file.Folder(name)
     end
 
     self.Folder = name
-    self.Data = {}
     self.Files = {}
 
     function self:Get(name, default)
         local path = self.Folder.."/"..name..".json"
         if not isfile(path) then
-            self.Data = default
             makefile(path, HttpService:JSONEncode(default))
         end
 
