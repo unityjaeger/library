@@ -1,13 +1,11 @@
 local library = {
-    FileSaving = "https://raw.githubusercontent.com/unityjaeger/library/main/file";
+    FileSaving = "https://raw.githubusercontent.com/unityjaeger/library/main/file"
 }
 
 function library:Import(branch)
     if library[branch] then
-        return loadstring(game:HttpGet(library[branch]))()
+        return loadstring(game:HttpGet(library[branch], true))()
     end
-    
-    return nil
 end
 
 return library
