@@ -152,6 +152,10 @@ if not game:GetAttribute("DrawingExtensionLoaded") then
                 end;
             }
 
+            for key, func in pairs(Namecalls) do
+                rawset(obj, key, func)
+            end
+
             local OldNewIndex
             OldNewIndex = hookfunction(mt.__newindex, function(tbl, key, value)
                 if Indexes[key] then
@@ -163,7 +167,7 @@ if not game:GetAttribute("DrawingExtensionLoaded") then
 
             local OldIndex
             OldIndex = hookfunction(mt.__index, function(tbl, key, value)
-                if Indexes[key] then
+                if Indexes[key] or Namecalls.FindFirstChild(obj, key) then --direct indexing
                     return rawget(tbl, key)
                 else
                     return OldIndex(tbl, key, value)
