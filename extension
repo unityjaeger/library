@@ -1,6 +1,6 @@
 repeat task.wait() until game.Players.LocalPlayer
-if not getgenv().DrawingExtension then
-    getgenv().DrawingExtension = true
+if not game:GetAttribute("DrawingExtensionLoaded") then
+    game:SetAttribute("DrawingExtensionLoaded")
 
     local Signal = loadstring(game:HttpGet("https://raw.githubusercontent.com/unityjaeger/library/main/signal"))()
     local UserInputService = game:GetService("UserInputService")
@@ -16,10 +16,10 @@ if not getgenv().DrawingExtension then
     local function Inset(Y)
         return Y + game:GetService("GuiService"):GetGuiInset().Y
     end
-
+    
     local function InBounds(obj)
-        if not table.find(Shapes, obj.Shape) then return false end
-
+        if not table.find(Shapes, obj.Shape) or not obj.__OBJECT_EXISTS then return false end
+                
         if obj.Shape == "Square" or obj.Shape == "Image" then --for image does not consider rounding (for now?)
             return (obj.Position.X + obj.Size.X >= Mouse.X and obj.Position.X <= Mouse.X and obj.Position.Y + obj.Size.Y >= Inset(Mouse.Y) and obj.Position.Y <= Inset(Mouse.Y)) and true or false
         elseif obj.Shape == "Circle" then
@@ -153,7 +153,7 @@ if not getgenv().DrawingExtension then
             }
 
             local OldNewIndex
-            OldNewIndex = hookmetamethod(mt, "__newindex", function(tbl, key, value)
+            OldNewIndex = hookfunction(mt.__newindex, function(tbl, key, value)
                 if Indexes[key] then
                     Indexes[key](tbl, key, value)
                 else
@@ -162,12 +162,15 @@ if not getgenv().DrawingExtension then
             end)
 
             local OldIndex
-            OldIndex = hookmetamethod(mt, "__index", function(tbl, key, value)
+            OldIndex = hookfunction(mt.__index, function(tbl, key, value)
                 if Indexes[key] then
                     return rawget(tbl, key)
                 else
-                    OldIndex(tbl, key, value)
+                    print("ets go")
+                    return OldIndex(tbl, key, value)
                 end
+                
+                
             end)
         end
         
