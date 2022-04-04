@@ -166,11 +166,8 @@ if not game:GetAttribute("DrawingExtensionLoaded") then
                 if Indexes[key] then
                     return rawget(tbl, key)
                 else
-                    print("ets go")
                     return OldIndex(tbl, key, value)
                 end
-                
-                
             end)
         end
         
