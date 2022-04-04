@@ -1,0 +1,59 @@
+local Utils = {}
+
+local function XY(...)
+    local Args = {...}
+    local Check = typeof(Args[1]) == "Vector2"
+    local X, Y = Check and Args[1].X or Args[1], Check and Args[1].Y or Args[2]
+    return X, Y
+end
+
+function Utils.AnchoredPosition(Element, Position, ...)
+    local X, Y = XY(...)
+    return Vector2.new(Position.X + Element.Size.X * X, Position.Y + Element.Size.Y * Y)
+end
+
+function Utils.ToOffset(...)
+    local X, Y = XY(...)
+    local Viewport = workspace.CurrentCamera.ViewportSize
+    return Vector2.new(Viewport.X * X, Viewport.Y * Y)
+end
+
+function Utils.ToScale(...)
+    local X, Y = XY(...)
+    local Viewport = workspace.CurrentCamera.ViewportSize
+    return Vector2.new(Viewport.X / X, Viewport.Y / Y)
+end
+
+function Utils.Frame(Position, Size, Color)
+    local Square = Drawing.new("Square")
+    Square.Transparency = 1
+    Square.Visible = true
+    Square.ZIndex = 0
+
+    Square.Thickness = 0
+    Square.Filled = true
+    Square.Color = Color
+    Square.Position = Position
+    Square.Size = Size
+
+    return Square
+end
+
+function Utils.Inset()
+    return game:GetService("GuiService"):GetGuiInset().Y
+end
+
+function Utils.ClampVector2(Min, Max, ...)
+    local X, Y = XY(...)
+    return Vector2.new(math.clamp(X, Min.X, Max.X), math.clamp(Y, Min.Y, Max.Y))
+end
+
+function Utils.Size(tbl)
+    local n = 0
+    for _,v in pairs(tbl) do
+        n = n + 1
+    end
+    return n
+end
+
+return Utils
