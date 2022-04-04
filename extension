@@ -153,7 +153,7 @@ if not getgenv().DrawingExtension then
             }
 
             local OldNewIndex
-            OldNewIndex = hookmetamethod(mt.__newindex, function(tbl, key, value)
+            OldNewIndex = hookmetamethod(mt, "__newindex", function(tbl, key, value)
                 if Indexes[key] then
                     Indexes[key](tbl, key, value)
                 else
@@ -162,7 +162,7 @@ if not getgenv().DrawingExtension then
             end)
 
             local OldIndex
-            OldIndex = hookmetamethod(mt.__index, function(tbl, key, value)
+            OldIndex = hookmetamethod(mt, "__index", function(tbl, key, value)
                 if Indexes[key] then
                     return rawget(tbl, key)
                 else
