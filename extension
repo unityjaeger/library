@@ -1,0 +1,176 @@
+repeat task.wait() until game.Players.LocalPlayer
+if not getgenv().DrawingExtension then
+    getgenv().DrawingExtension = true
+
+    local Signal = loadstring(game:HttpGet("https://raw.githubusercontent.com/unityjaeger/library/main/signal"))()
+    local UserInputService = game:GetService("UserInputService")
+    local Mouse = game:GetService("Players").LocalPlayer:GetMouse()
+
+    local Shapes = {
+        "Circle";
+        "Square";
+        "Image";
+        "Text";
+    }
+
+    local function Inset(Y)
+        return Y + game:GetService("GuiService"):GetGuiInset().Y
+    end
+
+    local function InBounds(obj)
+        if not table.find(Shapes, obj.Shape) then return false end
+
+        if obj.Shape == "Square" or obj.Shape == "Image" then --for image does not consider rounding (for now?)
+            return (obj.Position.X + obj.Size.X >= Mouse.X and obj.Position.X <= Mouse.X and obj.Position.Y + obj.Size.Y >= Inset(Mouse.Y) and obj.Position.Y <= Inset(Mouse.Y)) and true or false
+        elseif obj.Shape == "Circle" then
+            return ((Vector2.new(Mouse.X, Inset(Mouse.Y)) - obj.Position).magnitude <= obj.Radius)
+        elseif obj.Shape == "Text" then
+            return (obj.TextBounds.X + obj.Size.X >= Mouse.X and obj.TextBounds.X <= Mouse.X and obj.TextBounds.Y + obj.Size.Y >= Inset(Mouse.Y) and obj.TextBounds.Y <= Inset(Mouse.Y)) and true or false
+        end
+    end
+
+    local base = Drawing.new
+    function Drawing.new(shape)
+        local obj = base(shape)
+        local mt = getmetatable(obj)
+
+        if table.find(Shapes, shape) then
+            local Events = {
+                MouseEnter = Signal:Create();
+                MouseLeave = Signal:Create();
+
+                MouseButton1Down = Signal:Create();
+                MouseButton1Up = Signal:Create();
+                MouseButton1Click = Signal:Create();
+
+                MouseButton2Down = Signal:Create();
+                MouseButton2Up = Signal:Create();
+                MouseButton2Click = Signal:Create();
+            }
+
+            rawset(obj, "Shape", shape)
+            for key, value in pairs(Events) do
+                rawset(obj, key, value)
+            end
+
+            local OneDown, TwoDown, Entered = false, false, false
+            UserInputService.InputBegan:Connect(function(Input)
+                if not InBounds(obj) then return end
+
+                if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    OneDown = true
+                    obj.MouseButton1Down:Fire()
+                elseif Input.UserInputType == Enum.UserInputType.MouseButton2 then
+                    TwoDown = true
+                    obj.MouseButton2Down:Fire()
+                end
+            end)
+
+            UserInputService.InputEnded:Connect(function(Input)
+                if not InBounds(obj) then return end
+
+                if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    if OneDown then
+                        obj.MouseButton1Click:Fire()
+                    end
+
+                    OneDown = false
+                    obj.MouseButton1Up:Fire()
+                elseif Input.UserInputType == Enum.UserInputType.MouseButton2 then
+                    if TwoDown then
+                        obj.MouseButton2Click:Fire()
+                    end
+
+                    TwoDown = false
+                    obj.MouseButton2Up:Fire()
+                end
+            end)
+
+            UserInputService.InputChanged:Connect(function(Input)
+                if InBounds(obj) and not Entered then
+                    Entered = true
+                    obj.MouseEnter:Fire()
+                elseif Entered and not InBounds(obj) then
+                    Entered = false
+                    obj.MouseLeave:Fire()
+                end
+            end)
+
+            local Children = {}
+            local Descendants = {}
+            local Indexes = {
+                Name = function(tbl, key, value)
+                    rawset(tbl, key, value)
+                end;
+
+                Parent = function(tbl, key, value)
+                    assert(typeof(value) == "table", "Parent type must be a table.")
+                    table.insert(value:GetChildren(), obj)
+                    value.DescendantAdded:Fire(tbl)
+                    value.ChildAdded:Fire(tbl)
+
+                    local HighestParent = value
+                    local LastHighestParent = HighestParent
+
+                    repeat
+                        table.insert(LastHighestParent:GetDescendants(), tbl)
+                        LastHighestParent.DescendantAdded:Fire(tbl)
+
+                        HighestParent = HighestParent.Parent
+                        LastHighestParent = HighestParent
+                    until typeof(HighestParent) ~= "table"
+
+                    rawset(table, key, value)
+                end;
+            }
+
+            local Namecalls = {
+                GetChildren = function()
+                    for key, child in ipairs(Children) do
+                        if not child.__OBJECT_EXISTS then
+                            table.remove(Children, key)
+                        end
+                    end
+                    
+                    return children
+                end;
+
+                GetDescendants = function()
+                    for key, descendant in ipairs(Descendants) do
+                        if not descendant.__OBJECT_EXISTS then
+                            table.remove(Descendants, key)
+                        end
+                    end
+                end;
+
+                FindFirstChild = function(self, str)
+                    for key, child in ipairs(Children) do
+                        if child.Name == str then
+                            return child
+                        end
+                    end
+                end;
+            }
+
+            local OldNewIndex
+            OldNewIndex = hookmetamethod(mt.__newindex, function(tbl, key, value)
+                if Indexes[key] then
+                    Indexes[key](tbl, key, value)
+                else
+                    OldNewIndex(tbl, key, value)
+                end
+            end)
+
+            local OldIndex
+            OldIndex = hookmetamethod(mt.__index, function(tbl, key, value)
+                if Indexes[key] then
+                    return rawget(tbl, key)
+                else
+                    OldIndex(tbl, key, value)
+                end
+            end)
+        end
+        
+        return obj
+    end
+end
